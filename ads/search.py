@@ -116,7 +116,7 @@ class Article(object):
         """
         if not hasattr(self, "id") or self.id is None:
             raise APIResponseError("Cannot query an article without an id")
-        sq = next(SearchQuery(q="id:{}".format(self.id), fl=field))
+        sq = next(SearchQuery(q="id:%s" % (self.id), fl=field))
         # If the requested field is not present in the returning Solr doc,
         # return None instead of hitting _get_field again.
         if field not in sq._raw:
@@ -228,7 +228,7 @@ class Article(object):
     @cached_property
     def reference(self):
         q = SearchQuery(
-            q='references(id:{})'.format(self.id),
+            q='references(id:%s)' % (self.id),
             fl=['id', 'bibcode']
         )
         return [a.bibcode for a in q]
@@ -236,7 +236,7 @@ class Article(object):
     @cached_property
     def citation(self):
         q = SearchQuery(
-            q='citations(id:{})'.format(self.id),
+            q='citations(id:%s)' % (self.id),
             fl=['id', 'bibcode']
         )
         return [a.bibcode for a in q]
@@ -306,7 +306,7 @@ class SolrResponse(APIResponse):
             self.numFound = self.response['numFound']
             self.docs = self.response['docs']
         except KeyError as e:
-            raise SolrResponseParseError("{}".format(e))
+            raise SolrResponseParseError("%s" % (e))
 
     @property
     def articles(self):
@@ -373,10 +373,10 @@ class SearchQuery(BaseQuery):
                 sort = "score desc"
             else:
                 sort = sort.replace("+", " ")
-                sort = sort if " " in sort else "{} desc".format(sort)
+                sort = sort if " " in sort else "%s desc" % (sort)
                 # cursors require unique field in the sort
                 if "id" not in sort and start is None:
-                    sort = "{},id desc".format(sort)
+                    sort = "%s,id desc" % (sort)
             _ = {
                 "q": q or '',
                 "fq": fq,
@@ -407,8 +407,8 @@ class SearchQuery(BaseQuery):
 
             # Format and add kwarg (key, value) pairs to q
             if kwargs:
-                _ = [u'{}:"{}"'.format(k, v) for k, v in six.iteritems(kwargs)]
-                self._query['q'] = u'{} {}'.format(self._query['q'], ' '.join(_))
+                _ = ['%s:"%s"' % (k, v) for k, v in six.iteritems(kwargs)]
+                self._query['q'] = '%s %s' % (self._query['q'], ' '.join(_))
 
         assert self._query.get('rows') > 0, "rows must be greater than 0"
         assert self._query.get('q'), "q must not be empty"
@@ -436,7 +436,7 @@ class SearchQuery(BaseQuery):
         """
         if self.response is None:
             return "Query has not been executed"
-        return "{}/{}".format(len(self.articles), self.response.numFound)
+        return "%s/%s" % (len(self.articles), self.response.numFound)
 
     @property
     def query(self):
@@ -503,7 +503,7 @@ class SearchQuery(BaseQuery):
         if recv_rows != self.query.get("rows"):
             self._query['rows'] = recv_rows
             warnings.warn("Response rows did not match input rows. "
-                          "Setting this query's rows to {}".format(self.query['rows']))
+                          "Setting this query's rows to %s" % (self.query['rows']))
 
         self._articles.extend(self.response.articles)
         if self._query.get('start') is not None:

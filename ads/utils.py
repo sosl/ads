@@ -24,10 +24,9 @@ class cached_property(_cached_property):
         if value is _missing:
             # One time warning that the user is using lazy loading
             warnings.warn(
-                "You are lazy loading attributes via '{}', and so are "
+            "You are lazy loading attributes via '%s', and so are " % self.func.__name__ +
                 "making multiple calls to the API. This will impact your overall "
-                "rate limits."
-                .format(self.func.__name__),
+                "rate limits.",
                 UserWarning,
             )
             value = self.func(obj)

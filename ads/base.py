@@ -148,8 +148,8 @@ class BaseQuery(object):
             self._session = requests.session()
             self._session.headers.update(
                 {
-                    "Authorization": "Bearer {}".format(self.token),
-                    "User-Agent": "ads-api-client/{}".format(__version__),
+                    "Authorization": "Bearer %s" % (self.token),
+                    "User-Agent": "ads-api-client/%s" %s (__version__),
                     "Content-Type": "application/json",
                 }
             )
